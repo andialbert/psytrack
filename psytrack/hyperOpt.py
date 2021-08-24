@@ -18,7 +18,7 @@ from psytrack.helper.helperFunctions import (
 
 
 def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
-             hess_calc="weights"):
+             hess_calc="weights", maxiter = 15):
     '''Optimizes for hyperparameters and weights.
     
     Given data and set of hyperparameters, uses decoupled Laplace to find the
@@ -66,6 +66,8 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
 
     current_hyper = hyper.copy()
     best_logEvd = None
+    
+    logEvd_hist = []
 
     # Make sure all hyperparameters to be optimized are actually provided
     for val in optList:
@@ -111,6 +113,8 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
                 current_hyper.update({
                     val: (current_hyper[val] + best_hyper[val]) / 2
                 })
+                
+        logEvd_hist.append(best_logEvd)
 
         if showOpt:
             print('\nInitial evidence:', np.round(logEvd, 5))
@@ -160,10 +164,10 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
         # Optimize over hyperparameters
         if showOpt:
             print('\nStarting optimization...')
-            opts = {'maxiter': 15, 'disp': True}
+            opts = {'maxiter': maxiter, 'disp': True}
             callback = print
         else:
-            opts = {'maxiter': 15, 'disp': False}
+            opts = {'maxiter': maxiter, 'disp': False}
             callback = None
 
         # Do hyperparameter optimization in log2
@@ -217,7 +221,7 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
         hyp_std = np.sqrt(np.diag(np.linalg.inv(numerical_hess[0])))
         hess_info.update({'hyp_std': hyp_std})       
 
-    return best_hyper, best_logEvd, best_wMode, hess_info
+    return best_hyper, best_logEvd, logEvd_hist, best_wMode, hess_info
 
 
 def hyperOpt_lossfun(optVals, keywords):

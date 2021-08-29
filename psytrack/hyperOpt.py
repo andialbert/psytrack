@@ -18,7 +18,7 @@ from psytrack.helper.helperFunctions import (
 
 
 def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
-             hess_calc="weights", maxiter = 15):
+             hess_calc="weights", maxiter = 15, tol = 0.1):
     '''Optimizes for hyperparameters and weights.
     
     Given data and set of hyperparameters, uses decoupled Laplace to find the
@@ -192,7 +192,7 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
             print('\nRecovered evidence:', np.round(-result.fun, 5))
             print('\nDifference:', np.round(diff, 4))
             
-        if diff > 0.1:
+        if diff > tol:
             count = 0
             for val in optList:
                 if np.isscalar(current_hyper[val]):

@@ -3,7 +3,7 @@ from .helperFunctions import read_input
 from ..hyperOpt import hyperOpt
 
 def crossValidate(D, hyper_guess, weight_dict, optList,
-                  F=10, seed=None, verbose=True):
+                  F=10, seed=None, verbose=True, maxiter = 15):
     """Calculates the xval loglikelihood and P(y=0) for each trial.
     
     Args:
@@ -28,7 +28,7 @@ def crossValidate(D, hyper_guess, weight_dict, optList,
         if verbose:
             print("\rRunning xval fold " + str(f+1) + " of " + str(F), end="")
         _, _, _, wMode, _ = hyperOpt(train_dats[f], hyper_guess, weight_dict,
-                                  optList, hess_calc=None)
+                                  optList, hess_calc=None, maxiter = maxiter)
         logli, gw = xval_loglike(test_dats[f], wMode,
                                  train_dats[f]['missing_trials'], weight_dict)
         xval_logli += np.sum(logli)

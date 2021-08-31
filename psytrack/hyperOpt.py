@@ -77,7 +77,9 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
     # -----
     # Hyperparameter Optimization
     # -----
-
+    
+    optVal_hist = []
+    
     current_jump = jump
     while True:
 
@@ -120,6 +122,7 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
             print('\nInitial evidence:', np.round(logEvd, 5))
             for val in optList:
                 print(val, np.round(np.log2(current_hyper[val]), 4))
+       
 
         # Halt optimization early if evidence was worse 'jump'-times in a row
         if not current_jump:
@@ -165,10 +168,10 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
         if showOpt:
             print('\nStarting optimization...')
             opts = {'maxiter': maxiter, 'disp': True}
-            callback = print
+         #   callback = print
         else:
             opts = {'maxiter': maxiter, 'disp': False}
-            callback = None
+         #   callback = None
 
         # Do hyperparameter optimization in log2
         optVals = []
@@ -177,15 +180,24 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
                 optVals += [np.log2(current_hyper[val])]
             else:
                 optVals += np.log2(current_hyper[val]).tolist()
-
+                
+        optVal_block = []
+        
+        def callbackF(vlist):
+              optVal_block.append(vlist)
+              if showOpt:
+                  print(vlist)
+                   
         result = minimize(
             hyperOpt_lossfun,
             optVals,
             args=opt_keywords,
             method='BFGS',
             options=opts,
-            callback=callback,
+            callback=callbackF,
         )
+        
+        optVal_hist.append(optVal_block)
 
         diff = np.linalg.norm((optVals - result.x) / optVals)
         if showOpt:
@@ -221,7 +233,7 @@ def hyperOpt(dat, hyper, weights, optList, method=None, showOpt=0, jump=2,
         hyp_std = np.sqrt(np.diag(np.linalg.inv(numerical_hess[0])))
         hess_info.update({'hyp_std': hyp_std})       
 
-    return best_hyper, best_logEvd, logEvd_hist, best_wMode, hess_info
+    return best_hyper, best_logEvd, logEvd_hist, best_wMode, hess_info, optVal_hist
 
 
 def hyperOpt_lossfun(optVals, keywords):
